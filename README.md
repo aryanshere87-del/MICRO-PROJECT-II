@@ -4,11 +4,11 @@ Madhav Institute of Technology & Science (MITS), Gwalior
 
 The Stack Library is an integrated Library Management System built as a first-year BTech micro-project. It combines the fundamental Data Structure concept of a Stack (Last-In-First-Out) with modern Business System logic to manage student book transactions, librarian oversight, and financial audits.
 
-🏛️ Project Overview
+1. 🏛️ Project Overview
 
 This application provides a dual-portal interface for Students and Librarians. It focuses on data persistence, user privacy through session isolation, and real-time administrative analytics.
 
-Key Objectives
+1.1. Key Objectives
 
 Logical Implementation: Use the LIFO principle for issuing and returning books.
 
@@ -18,9 +18,9 @@ Data Integrity: Reliable state management using browser LocalStorage.
 
 User Security: Role-based access control with password protection.
 
-✨ Key Features
+2. ✨ Key Features
 
-👨‍🎓 Student Portal
+2.1. 👨‍🎓 Student Portal
 
 Identity-Based Sessions: Login using a Library Card Number to access a private desk.
 
@@ -30,7 +30,7 @@ Real-Time Catalog: Search through categorized folders (Data Structures, Web Dev,
 
 Fine Awareness: Private notification of outstanding fines on the dashboard.
 
-🔑 Librarian Portal (Admin)
+2.2. 🔑 Librarian Portal (Admin)
 
 Audit Ledger: Complete history of all transactions with timestamps and student IDs.
 
@@ -42,7 +42,7 @@ Live Analytics: Visual representation of library stock using dynamic charts.
 
 Proactive Alerts: Automatic "Red Alert" notifications for books held over 24 hours.
 
-🛠️ Technology Stack
+3. 🛠️ Technology Stack
 
 Frontend: HTML5, Tailwind CSS (Styling)
 
@@ -54,13 +54,13 @@ Analytics: Chart.js
 
 UI/UX: Dark Mode support and responsive layouts.
 
-📋 Business Logic & Data Structures
+4. 📋 Business Logic & Data Structures
 
-The LIFO Principle
+4.1. The LIFO Principle
 
 The project serves as a practical demonstration of the Stack data structure. When a student returns a book, the system enforces that the last book issued is the first one returned, mirroring real-world physical book stacking.
 
-Financial Module
+4.2. Financial Module
 
 To simulate a real Business System, an automated fine module is integrated:
 
@@ -70,13 +70,13 @@ Penalty: ₹5 per minute late.
 
 Calculation: Computed using epoch timestamps to ensure accuracy even across browser sessions.
 
-Security & Privacy
+4.3. Security & Privacy
 
 Session Isolation: Unique key mapping ensures Student A cannot view Student B's desk.
 
 Admin Access: Librarian tools are gated by a master password (mits123).
 
-🚀 Getting Started
+5. 🚀 Getting Started
 
 Clone the repository or download the index.html file.
 
@@ -86,9 +86,8 @@ To Login as Student: Enter any Card Number.
 
 To Login as Librarian: Use the "Librarian" tab and enter password mits123.
 
-👥 Contributors
+6. 👥 Contributors
 
 Aryan Sharma (Lead Developer | 1st Year CSBS)
-
 
 
