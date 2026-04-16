@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Stack Library | CSBS Admin ERP</title>
+    <title>The Stack Library | CSBS Integrated System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
@@ -23,6 +23,7 @@
 </head>
 <body class="bg-stone-100 dark:bg-stone-900 text-stone-800 dark:text-stone-100 min-h-screen flex flex-col">
 
+    <!-- LOGIN VIEW -->
     <div id="login-view" class="fixed inset-0 z-[100] bg-stone-900 flex items-center justify-center">
         <div class="bg-stone-800 p-10 rounded-2xl border border-stone-700 w-full max-w-md shadow-2xl">
             <h1 class="text-4xl font-bold text-amber-500 serif-font mb-4 text-center">🏛️ The Stack Library</h1>
@@ -47,6 +48,7 @@
         </div>
     </div>
 
+    <!-- MAIN DASHBOARD -->
     <div id="main-view" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
         <header class="bg-amber-900 dark:bg-black text-amber-50 p-4 px-6 flex justify-between items-center shadow-lg">
             <div class="flex items-center gap-3">
@@ -62,6 +64,7 @@
         </header>
 
         <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-hidden">
+            <!-- Left: Catalog & Admin Tools -->
             <div class="lg:col-span-4 flex flex-col gap-4 overflow-hidden">
                 <div id="admin-add-book" class="hidden bg-white dark:bg-stone-800 p-4 rounded-xl border-2 border-dashed border-amber-500 shadow-inner">
                     <h3 class="text-[10px] font-bold text-amber-600 uppercase mb-2">Inventory Management</h3>
@@ -77,11 +80,12 @@
                 </div>
 
                 <div class="bg-white dark:bg-stone-800 p-3 rounded-xl border dark:border-stone-700 shadow-sm flex flex-col gap-2">
-                    <input type="text" id="search" oninput="handleSearch(this.value)" placeholder="Search catalog..." class="w-full px-3 py-2 bg-stone-100 dark:bg-stone-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-amber-500">
+                    <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Search catalog..." class="w-full px-3 py-2 bg-stone-100 dark:bg-stone-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-amber-500">
                 </div>
                 <div id="catalog-area" class="bg-white dark:bg-stone-800 rounded-xl border dark:border-stone-700 shadow-sm flex-1 overflow-y-auto p-4 scroll-smooth"></div>
             </div>
 
+            <!-- Middle: Dynamic View -->
             <div id="middle-column" class="lg:col-span-4 flex flex-col">
                 <div id="student-stack-view" class="flex flex-col items-center h-full">
                     <div class="bg-amber-900 text-white p-5 rounded-2xl w-full mb-4 shadow-xl border-t-4 border-amber-500">
@@ -106,6 +110,7 @@
                 </div>
             </div>
 
+            <!-- Right Column -->
             <div class="lg:col-span-4 flex flex-col h-full overflow-hidden gap-4">
                 <div id="admin-only-section" class="hidden flex-1 flex flex-col gap-4 overflow-hidden">
                     <div class="bg-white dark:bg-stone-800 p-4 rounded-xl border dark:border-stone-700 h-44">
@@ -136,6 +141,7 @@
     <script>
         let currentUserRole = 'Student';
         let userCard = '';
+        let selectedBook = null;
         let books = { 'DS': [], 'WD': [], 'OT': [] };
         let visualStack = [];
         let logs = JSON.parse(localStorage.getItem('lib_logs_vFinal')) || [];
@@ -143,11 +149,10 @@
         let chart = null;
 
         function toggleLoginRole(role) {
-            const isStudent = role === 'Student';
-            document.getElementById('student-inputs').classList.toggle('hidden', !isStudent);
-            document.getElementById('admin-inputs').classList.toggle('hidden', isStudent);
-            document.getElementById('tab-student').className = `flex-1 py-2 rounded-lg font-bold text-xs ${isStudent ? 'bg-amber-600 text-white' : 'text-stone-400'}`;
-            document.getElementById('tab-admin').className = `flex-1 py-2 rounded-lg font-bold text-xs ${!isStudent ? 'bg-stone-600 text-white' : 'text-stone-400'}`;
+            document.getElementById('student-inputs').classList.toggle('hidden', role !== 'Student');
+            document.getElementById('admin-inputs').classList.toggle('hidden', role !== 'Librarian');
+            document.getElementById('tab-student').className = `flex-1 py-2 rounded-lg font-bold text-xs ${role==='Student' ? 'bg-amber-600 text-white' : 'text-stone-400'}`;
+            document.getElementById('tab-admin').className = `flex-1 py-2 rounded-lg font-bold text-xs ${role==='Librarian' ? 'bg-stone-600 text-white' : 'text-stone-400'}`;
         }
 
         function attemptLogin(role) {
@@ -192,40 +197,6 @@
             if(role === 'Librarian') updateChart();
         }
 
-        function updateAdminBoxes() {
-            const borrowerBox = document.getElementById('admin-borrower-box');
-            const fineBox = document.getElementById('admin-fine-box');
-            borrowerBox.innerHTML = '';
-            fineBox.innerHTML = '';
-
-            Object.keys(localStorage).forEach(key => {
-                if(key.startsWith('stack_vFinal_')) {
-                    const card = key.replace('stack_vFinal_', '');
-                    const s = JSON.parse(localStorage.getItem(key));
-                    if(s.length > 0) {
-                        borrowerBox.innerHTML += `<div class="p-2 bg-indigo-50 dark:bg-stone-700 rounded border border-indigo-100 flex justify-between">
-                            <b>ID: ${card}</b><span>Holding ${s.length} Book(s)</span></div>`;
-                    }
-                }
-            });
-
-            Object.keys(fines).forEach(card => {
-                if(fines[card] > 0) {
-                    fineBox.innerHTML += `<div class="p-2 bg-rose-50 dark:bg-rose-950/20 rounded border border-rose-200 flex justify-between items-center">
-                        <span>Card ${card}: ₹${fines[card]}</span>
-                        <button onclick="clearFine('${card}')" class="text-[10px] bg-rose-600 text-white px-2 py-1 rounded">CLEAR</button></div>`;
-                }
-            });
-            if(!fineBox.innerHTML) fineBox.innerHTML = '<p class="text-stone-400 italic">No outstanding fines.</p>';
-        }
-
-        function clearFine(card) {
-            fines[card] = 0;
-            localStorage.setItem('lib_fines_vFinal', JSON.stringify(fines));
-            addLog(`ADMIN: Cleared fine for Card ${card}`);
-            updateAdminBoxes();
-        }
-
         function initData() {
             const stored = JSON.parse(localStorage.getItem('lib_books_vFinal'));
             if(stored) books = stored;
@@ -239,72 +210,163 @@
             }
         }
 
-        function addNewBook() {
-            const t = document.getElementById('new-book-title').value.trim();
-            const cat = document.getElementById('new-book-cat').value;
-            if(!t) return;
-            books[cat].push({ id: `${cat}-${100+books[cat].length+1}`, title: t, cat: cat });
-            localStorage.setItem('lib_books_vFinal', JSON.stringify(books));
-            addLog(`ADMIN: Added [${t}] to library.`);
-            showFolders();
-            document.getElementById('new-book-title').value = '';
-        }
-
         function showFolders() {
             const area = document.getElementById('catalog-area');
             area.innerHTML = `<div class="space-y-3">
-                <div onclick="openFolder('DS')" class="p-4 bg-indigo-50 dark:bg-stone-900 border-2 border-indigo-200 rounded-xl cursor-pointer">🧠 Data Structures</div>
-                <div onclick="openFolder('WD')" class="p-4 bg-emerald-50 dark:bg-stone-900 border-2 border-emerald-200 rounded-xl cursor-pointer">🌐 Web Development</div>
-                <div onclick="openFolder('OT')" class="p-4 bg-amber-50 dark:bg-stone-900 border-2 border-amber-200 rounded-xl cursor-pointer">📁 Other Resources</div>
+                <div onclick="openFolder('DS')" class="p-4 bg-indigo-50 dark:bg-stone-900 border-2 border-indigo-200 rounded-xl cursor-pointer hover:border-amber-500 transition">🧠 Data Structures</div>
+                <div onclick="openFolder('WD')" class="p-4 bg-emerald-50 dark:bg-stone-900 border-2 border-emerald-200 rounded-xl cursor-pointer hover:border-amber-500 transition">🌐 Web Development</div>
+                <div onclick="openFolder('OT')" class="p-4 bg-amber-50 dark:bg-stone-900 border-2 border-amber-200 rounded-xl cursor-pointer hover:border-amber-500 transition">📁 Other Resources</div>
             </div>`;
         }
 
         function openFolder(key) {
             const area = document.getElementById('catalog-area');
-            let html = `<button onclick="showFolders()" class="text-[10px] bg-stone-800 text-white px-3 py-1 rounded-full mb-3">← Folders</button><div class="space-y-2">`;
+            let html = `<button onclick="showFolders()" class="text-[10px] bg-stone-800 text-white px-3 py-1 rounded-full mb-3">← Back to Folders</button><div class="space-y-2">`;
             books[key].forEach(b => {
-                html += `<div onclick="selectBook('${key}', '${b.id}')" class="p-3 border rounded-xl hover:border-amber-500 cursor-pointer flex justify-between items-center"><span class="book-title-lg text-xs">${b.title}</span><span class="text-[9px] font-bold text-amber-600">${b.id}</span></div>`;
+                html += `<div onclick="selectBook('${key}', '${b.id}')" class="p-3 border rounded-xl hover:border-amber-500 cursor-pointer flex justify-between items-center transition dark:bg-stone-700/50"><span class="book-title-lg text-xs">${b.title}</span><span class="text-[9px] font-bold text-amber-600">${b.id}</span></div>`;
             });
             area.innerHTML = html + `</div>`;
         }
 
         function selectBook(folder, id) {
-            selected = books[folder].find(b => b.id === id);
-            document.getElementById('selected-title').value = selected.title;
+            selectedBook = books[folder].find(b => b.id === id);
+            document.getElementById('selected-title').value = selectedBook.title;
+        }
+
+        // FIXED SEARCH FUNCTION
+        function handleSearch(val) {
+            if(!val || val.trim() === "") return showFolders();
+            
+            const area = document.getElementById('catalog-area');
+            const query = val.toLowerCase().trim();
+            
+            // Collect all books into a single flat array for searching
+            let searchResults = [];
+            Object.keys(books).forEach(cat => {
+                books[cat].forEach(b => {
+                    if (b.title.toLowerCase().includes(query) || b.id.toLowerCase().includes(query)) {
+                        searchResults.push({ ...b, category: cat });
+                    }
+                });
+            });
+
+            if (searchResults.length === 0) {
+                area.innerHTML = `<div class="p-8 text-center text-stone-400 italic text-sm">No books found matching "${val}"</div>`;
+                return;
+            }
+
+            let html = `<div class="flex justify-between items-center mb-3"><span class="text-[10px] text-stone-500 font-bold uppercase">Results</span><button onclick="clearSearch()" class="text-[10px] bg-stone-200 dark:bg-stone-700 px-2 py-0.5 rounded text-stone-600 dark:text-stone-300">Clear</button></div><div class="space-y-2">`;
+            
+            searchResults.forEach(b => {
+                html += `<div onclick="selectBook('${b.category}', '${b.id}')" class="p-3 border rounded-xl hover:border-amber-500 cursor-pointer flex justify-between items-center transition dark:bg-stone-700/50">
+                    <div class="flex flex-col">
+                        <span class="book-title-lg text-xs">${b.title}</span>
+                        <span class="text-[8px] uppercase text-stone-500">${b.category} Category</span>
+                    </div>
+                    <span class="text-[9px] font-bold text-amber-600">${b.id}</span>
+                </div>`;
+            });
+            area.innerHTML = html + `</div>`;
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = "";
+            showFolders();
+        }
+
+        function addNewBook() {
+            const t = document.getElementById('new-book-title').value.trim();
+            const cat = document.getElementById('new-book-cat').value;
+            if(!t) return;
+            const newId = `${cat}-${100+books[cat].length+1}`;
+            books[cat].push({ id: newId, title: t, cat: cat });
+            localStorage.setItem('lib_books_vFinal', JSON.stringify(books));
+            addLog(`ADMIN: Registered [${t}] with ID ${newId}`);
+            showFolders();
+            document.getElementById('new-book-title').value = '';
+            if(chart) updateChart();
         }
 
         function pushBook() {
-            if(!selected) return;
-            if(visualStack.length >= 3) return alert("Limit: 3 Books.");
-            const entry = { ...selected, raw: Date.now(), card: userCard };
+            if(currentUserRole === 'Librarian') return alert("Librarian view is audit only.");
+            if(!selectedBook) return alert("Please select a book from the catalog first.");
+            if(visualStack.length >= 3) return alert("Limit Reached: Max 3 Books per student desk.");
+            
+            const entry = { ...selectedBook, raw: Date.now(), card: userCard };
             visualStack.push(entry);
             localStorage.setItem(`stack_vFinal_${userCard}`, JSON.stringify(visualStack));
-            addLog(`ISSUE: Card ${userCard} took ${entry.id}`);
+            addLog(`ISSUE: Card ${userCard} issued ${entry.id}`);
             updateStackUI();
             document.getElementById('selected-title').value = '';
+            selectedBook = null;
         }
 
         function popBook() {
-            if(visualStack.length === 0) return;
+            if(currentUserRole === 'Librarian') return alert("Librarian view is audit only.");
+            if(visualStack.length === 0) return alert("Stack Empty: No books on your desk.");
+            
             const book = visualStack.pop();
             const elapsed = (Date.now() - book.raw) / 1000;
             let logTag = "On Time";
-            if (elapsed > 60) {
+            
+            if (elapsed > 60) { // Demo threshold: 1 min
                 const amt = Math.ceil((elapsed-60)/60) * 5;
                 fines[userCard] = (fines[userCard] || 0) + amt;
                 localStorage.setItem('lib_fines_vFinal', JSON.stringify(fines));
                 logTag = `LATE! Fine ₹${amt}`;
                 updateFineStatus();
             }
+            
             localStorage.setItem(`stack_vFinal_${userCard}`, JSON.stringify(visualStack));
-            addLog(`POP: Card ${userCard} returned ${book.id} (${logTag})`);
+            addLog(`RETURN: Card ${userCard} returned ${book.id} (${logTag})`);
             updateStackUI();
         }
 
         function updateFineStatus() {
             const amt = fines[userCard] || 0;
             document.getElementById('fine-badge').classList.toggle('hidden', amt === 0);
-            document.getElementById('student-fine-msg').innerHTML = amt > 0 ? `<span class="text-rose-500 font-bold">Outstanding Fine: ₹${amt}</span>` : "Session Protected";
+            document.getElementById('student-fine-msg').innerHTML = amt > 0 
+                ? `<span class="text-rose-500 font-bold">Outstanding Fine: ₹${amt}</span>` 
+                : "Session Protected - No Fines";
+        }
+
+        function updateAdminBoxes() {
+            const borrowerBox = document.getElementById('admin-borrower-box');
+            const fineBox = document.getElementById('admin-fine-box');
+            borrowerBox.innerHTML = '';
+            fineBox.innerHTML = '';
+
+            let hasBorrowers = false;
+            Object.keys(localStorage).forEach(key => {
+                if(key.startsWith('stack_vFinal_')) {
+                    const card = key.replace('stack_vFinal_', '');
+                    const s = JSON.parse(localStorage.getItem(key));
+                    if(s.length > 0) {
+                        hasBorrowers = true;
+                        borrowerBox.innerHTML += `<div class="p-2 bg-indigo-50 dark:bg-stone-700/50 rounded border border-indigo-100 dark:border-indigo-900 flex justify-between">
+                            <b>ID: ${card}</b><span>${s.length} Active</span></div>`;
+                    }
+                }
+            });
+            if(!hasBorrowers) borrowerBox.innerHTML = '<p class="text-stone-400 italic">No active borrowers.</p>';
+
+            let hasFines = false;
+            Object.keys(fines).forEach(card => {
+                if(fines[card] > 0) {
+                    hasFines = true;
+                    fineBox.innerHTML += `<div class="p-2 bg-rose-50 dark:bg-rose-950/20 rounded border border-rose-200 dark:border-rose-900 flex justify-between items-center">
+                        <span>Card ${card}: ₹${fines[card]}</span>
+                        <button onclick="clearFine('${card}')" class="text-[10px] bg-rose-600 text-white px-2 py-1 rounded hover:bg-rose-500">CLEAR</button></div>`;
+                }
+            });
+            if(!hasFines) fineBox.innerHTML = '<p class="text-stone-400 italic">No outstanding fines.</p>';
+        }
+
+        function clearFine(card) {
+            fines[card] = 0;
+            localStorage.setItem('lib_fines_vFinal', JSON.stringify(fines));
+            addLog(`ADMIN: Cleared fine for Card ${card}`);
+            updateAdminBoxes();
         }
 
         function checkOverdue() {
@@ -312,52 +374,112 @@
             let overdue = [];
             Object.keys(localStorage).forEach(key => {
                 if(key.startsWith('stack_vFinal_')) {
-                    JSON.parse(localStorage.getItem(key)).forEach(b => { if((now - b.raw)/3600000 >= 24) overdue.push(`ID ${b.card}`); });
+                    const stack = JSON.parse(localStorage.getItem(key));
+                    stack.forEach(b => { 
+                        if((now - b.raw)/3600000 >= 24) overdue.push(`ID ${b.card}: ${b.id}`); 
+                    });
                 }
             });
-            if(overdue.length > 0) alert("⚠️ LATE ALERT:\nCards: " + [...new Set(overdue)].join(', '));
+            if(overdue.length > 0) {
+                // custom notification instead of window alert if preferred, but alert is fine for demo
+                alert("⚠️ SYSTEM ALERT: Overdue Books (>24H)\n" + overdue.join('\n'));
+            }
         }
 
-        function loadStudentStack() { visualStack = JSON.parse(localStorage.getItem(`stack_vFinal_${userCard}`)) || []; }
+        function loadStudentStack() { 
+            visualStack = JSON.parse(localStorage.getItem(`stack_vFinal_${userCard}`)) || []; 
+        }
+
         function updateStackUI() {
             const container = document.getElementById('stack-container');
             if(!container) return;
             container.innerHTML = '';
             visualStack.forEach(b => {
                 const el = document.createElement('div');
-                el.className = `w-full bg-white dark:bg-stone-800 border-2 rounded-xl p-3 text-center animate-push shadow-md border-amber-600/20`;
-                el.innerHTML = `<p class="book-title-lg uppercase">${b.title}</p><p class="text-[10px] font-bold opacity-60">ID: ${b.card}</p>`;
+                const catColor = b.id.startsWith('DS') ? 'indigo' : (b.id.startsWith('WD') ? 'emerald' : 'amber');
+                el.className = `w-full bg-${catColor}-100 dark:bg-${catColor}-900/40 border-2 border-${catColor}-400 rounded-xl p-3 text-center animate-push shadow-md`;
+                el.innerHTML = `<p class="book-title-lg uppercase">${b.title}</p><p class="text-[10px] font-bold opacity-60">Card ID: ${b.card}</p>`;
                 container.appendChild(el);
             });
         }
 
         function addLog(t) {
             logs.unshift(`[${new Date().toLocaleTimeString()}] ${t}`);
+            // Limit logs to last 50
+            if(logs.length > 50) logs.pop();
             localStorage.setItem('lib_logs_vFinal', JSON.stringify(logs));
-            if(currentUserRole === 'Librarian') renderLogs();
+            if(currentUserRole === 'Librarian') {
+                renderLogs();
+                updateAdminBoxes();
+            }
         }
 
         function renderLogs() {
             const container = document.getElementById('ledger');
             if(!container) return;
-            container.innerHTML = logs.map(l => `<div class="p-2 bg-stone-50 dark:bg-stone-900 border-l-4 border-amber-600 rounded shadow-sm ${l.includes('LATE!') ? 'border-rose-500' : ''}">${l}</div>`).join('');
+            container.innerHTML = logs.map(l => {
+                const isLate = l.includes('LATE!');
+                return `<div class="p-2 bg-stone-50 dark:bg-stone-900 border-l-4 rounded shadow-sm ${isLate ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20' : 'border-amber-600'}">${l}</div>`;
+            }).join('');
+            if(logs.length === 0) container.innerHTML = '<p class="text-xs italic text-center text-stone-400">Audit trail empty.</p>';
         }
 
-        function clearLogs() { logs = []; localStorage.setItem('lib_logs_vFinal', JSON.stringify(logs)); renderLogs(); }
+        function clearLogs() { 
+            if(confirm("Are you sure you want to clear the audit history?")) {
+                logs = []; 
+                localStorage.setItem('lib_logs_vFinal', JSON.stringify(logs)); 
+                renderLogs(); 
+            }
+        }
 
         function updateChart() {
-            let ds=0, wd=0, ot=0;
+            const canvas = document.getElementById('statChart');
+            if(!canvas) return;
+            
+            let dsCount = 0, wdCount = 0, otCount = 0;
+            
+            // Calculate active counts from all stacks
             Object.keys(localStorage).forEach(key => {
                 if(key.startsWith('stack_vFinal_')) {
                     const s = JSON.parse(localStorage.getItem(key));
-                    ds += s.filter(b => b.id.startsWith('DS')).length;
-                    wd += s.filter(b => b.id.startsWith('WD')).length;
-                    ot += s.filter(b => b.id.startsWith('OT')).length;
+                    s.forEach(b => {
+                        if(b.id.startsWith('DS')) dsCount++;
+                        else if(b.id.startsWith('WD')) wdCount++;
+                        else otCount++;
+                    });
                 }
             });
-            const ctx = document.getElementById('statChart').getContext('2d');
+
+            const ctx = canvas.getContext('2d');
             if(chart) chart.destroy();
-            chart = new Chart(ctx, { type: 'bar', data: { labels: ['DS', 'WD', 'Other'], datasets: [{ data: [ds, wd, ot], backgroundColor: ['#6366f1', '#10b981', '#f59e0b'] }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+            
+            chart = new Chart(ctx, { 
+                type: 'bar', 
+                data: { 
+                    labels: ['DS', 'WD', 'Other'], 
+                    datasets: [{ 
+                        label: 'Active Issues',
+                        data: [dsCount, wdCount, otCount], 
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b'],
+                        borderRadius: 4
+                    }] 
+                }, 
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, color: '#a8a29e' },
+                            grid: { color: 'rgba(168, 162, 158, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#a8a29e' },
+                            grid: { display: false }
+                        }
+                    }
+                } 
+            });
         }
     </script>
 </body>
